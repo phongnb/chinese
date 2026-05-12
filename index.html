@@ -255,20 +255,63 @@
     </div>
 
     <script type="module">
-        // Bạn có thể thiết lập lại Firebase tại đây nếu cần (giữ nguyên config của bạn)
-        // import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-        // import { getDatabase, ref, set, get, child, onValue } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+        import { getDatabase, ref, set, get, child, onValue } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
         
+        const firebaseConfig = {
+            apiKey: "AIzaSyCtBX8TzRwaKdCdsVrQvfuMXqZLLi6Wfik",
+            authDomain: "chinese-9142c.firebaseapp.com",
+            databaseURL: "https://chinese-9142c-default-rtdb.firebaseio.com",
+            projectId: "chinese-9142c",
+            storageBucket: "chinese-9142c.firebasestorage.app",
+            messagingSenderId: "746021629474",
+            appId: "1:746021629474:web:29f6942512ecbe6a03e47b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        window.firebaseRef = ref;
+        window.firebaseSet = set;
+        window.firebaseDb = db;
+
         async function initApp() {
             if(localStorage.getItem('theme') === 'dark') {
                 document.body.classList.add('dark-mode');
                 document.getElementById('darkModeBtn').innerText = '☀️';
             }
+            
+            // Tải dữ liệu lưu trữ local trước để hiển thị ngay lập tức
             const localData = localStorage.getItem('chineseNotebookDB_Lite');
             if(localData) {
                 window.topics = JSON.parse(localData);
                 window.renderTopicList();
                 if(window.topics.length > 0) window.loadTopic(0);
+            }
+
+            // Lắng nghe dữ liệu từ Firebase để đồng bộ hóa
+            try {
+                const topicsRef = ref(db, 'topics');
+                onValue(topicsRef, (snapshot) => {
+                    if (snapshot.exists()) {
+                        window.topics = snapshot.val();
+                        localStorage.setItem('chineseNotebookDB_Lite', JSON.stringify(window.topics));
+                        window.renderTopicList();
+                        
+                        if(window.currentIndex >= 0 && window.currentIndex < window.topics.length) {
+                            const activeElement = document.activeElement;
+                            const isEditing = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.isContentEditable);
+                            
+                            if (!isEditing) {
+                                window.loadTopic(window.currentIndex);
+                            }
+                        } else if(window.topics.length > 0 && window.currentIndex === -1) {
+                            window.loadTopic(0);
+                        }
+                    }
+                });
+            } catch (error) { 
+                console.warn("Đang chạy Offline (Local Storage)", error); 
             }
         }
         initApp();
@@ -587,9 +630,14 @@
 
         window.saveToBoth = async function() {
             localStorage.setItem('chineseNotebookDB_Lite', JSON.stringify(window.topics));
-            // Nếu bạn dùng Firebase, hãy uncomment 3 dòng phía dưới
-            // try { if(window.firebaseSet) { await window.firebaseSet(window.firebaseRef(window.firebaseDb, 'topics'), window.topics); } } 
-            // catch (e) { console.warn("Lỗi đồng bộ Firebase", e); }
+            
+            // ĐÃ KHÔI PHỤC LẠI CHỨC NĂNG LƯU VÀO FIREBASE
+            try { 
+                if(window.firebaseSet) { 
+                    await window.firebaseSet(window.firebaseRef(window.firebaseDb, 'topics'), window.topics); 
+                } 
+            } 
+            catch (e) { console.warn("Lỗi đồng bộ Firebase", e); }
         }
 
         /* --- TỰ ĐỘNG GẠCH CHÂN TỪ VỰNG --- */
