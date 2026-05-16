@@ -115,8 +115,7 @@
 
         /* Role-play Styles */
         .roleplay-line { display: flex; align-items: flex-start; margin-bottom: 12px; padding: 12px; background: var(--input-bg); border-radius: 8px; border-left: 4px solid var(--accent-orange); }
-        /* Kích thước font tiếng Trung tăng lên 1.5x (từ 24px -> 36px) */
-        .roleplay-text { flex: 1; font-size: 36px; line-height: 1.5; }
+        .roleplay-text { flex: 1; font-size: 30px; line-height: 1.5; }
         .play-line-btn { background: none; border: none; cursor: pointer; font-size: 22px; margin-left: 10px; opacity: 0.6; transition: 0.2s; }
         .play-line-btn:hover { opacity: 1; transform: scale(1.1); }
 
@@ -418,7 +417,6 @@
                     isVietnamese = false;
                 }
 
-                // Cập nhật textStyle để luôn ưu tiên font-size 16px nếu đó hoàn toàn là text tiếng Việt
                 const textStyle = isVietnamese ? 'font-size: 16px; font-family: inherit;' : '';
                 const fontClass = isVietnamese ? '' : 'font-edukai';
                 const playBtnHtml = isVietnamese ? '' : `<button class="play-line-btn" onclick="playRoleplayLine('${escapeQuotes(originalZhText)}')">🔊</button>`;
