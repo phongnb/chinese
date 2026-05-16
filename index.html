@@ -83,20 +83,18 @@
         textarea:focus, input[type="text"]:focus { border-color: #667eea; background: var(--card-bg); }
         select { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-weight: bold; cursor: pointer; outline: none; }
 
-        /* Style cho phần Gạch chân từ vựng mục tiêu (Vàng Tươi) */
+        /* Style cho phần Gạch chân từ vựng mục tiêu (Vàng Tươi - Đã khóa cứng) */
         .highlight-word {
-            text-decoration: underline;
-            text-decoration-color: #ffc107; /* Màu vàng tươi */
-            text-underline-offset: 4px;
-            text-decoration-thickness: 3px; /* Làm đường gạch dày hơn để dễ thấy */
-            font-weight: bold;
-            color: inherit; /* Giữ màu chữ gốc để dễ đọc */
-            background-color: transparent; /* Xóa màu nền */
+            text-decoration: underline !important;
+            text-decoration-color: #ffc107 !important; /* Màu vàng tươi */
+            text-underline-offset: 4px !important;
+            text-decoration-thickness: 3px !important; /* Làm đường gạch dày hơn để dễ thấy */
+            font-weight: bold !important;
+            color: inherit !important; /* Giữ màu chữ gốc để dễ đọc */
+            background-color: transparent !important; /* Đảm bảo không có màu nền */
         }
         body.dark-mode .highlight-word {
-            text-decoration-color: #fde047; /* Vàng sáng hơn cho chế độ tối */
-            color: inherit;
-            background-color: transparent;
+            text-decoration-color: #fde047 !important; /* Vàng sáng hơn cho chế độ tối */
         }
 
         /* Layout Boxes */
@@ -379,8 +377,10 @@
                 return;
             }
 
-            const dialogueZh = window.topics[window.currentIndex].dialogue || "";
-            const dialogueVi = window.topics[window.currentIndex].dialogueVi || "";
+            // SỬA LỖI: Lấy trực tiếp từ các ô nhập liệu DOM thay vì từ window.topics 
+            // Giúp tính năng gạch chân Real-time ăn ngay lập tức khi đang gõ!
+            const dialogueZh = document.getElementById('rawDialogue').value || "";
+            const dialogueVi = document.getElementById('rawDialogueVi').value || "";
             const mode = document.getElementById('roleplayMode').value;
             container.innerHTML = '';
 
@@ -644,11 +644,9 @@
             if (!text) return "";
             let htmlText = text;
             
-            // Xử lý escape HTML tags để tránh lỗi hiển thị
             if (isRawText) {
                 htmlText = htmlText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
             } else {
-                // Xóa thẻ span highlight cũ nếu không phải raw text
                 htmlText = htmlText.replace(/<span class="highlight-word">([^<]*)<\/span>/g, '$1');
             }
 
@@ -657,15 +655,10 @@
                 const words = vocabInput.split(',').map(w => w.trim()).filter(w => w !== "");
                 
                 if (words.length > 0) {
-                    // Sắp xếp theo độ dài giảm dần để ưu tiên cụm từ dài trước
                     words.sort((a, b) => b.length - a.length);
-
-                    // Escape các ký tự đặc biệt trong Regex
                     const escapedWords = words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-                    
-                    // Gộp tất cả từ vào 1 Regex bằng toán tử OR (|) để quét và bọc thẻ trong 1 lần duy nhất
-                    // Giúp xử lý dứt điểm lỗi các thẻ span bị lồng vào nhau gây vỡ layout
-                    const regex = new RegExp(`(${escapedWords.join('|')})`, 'gi');
+                    // (?![^<]*>) giúp an toàn, không match nhầm vào các đoạn code HTML
+                    const regex = new RegExp(`(${escapedWords.join('|')})(?![^<]*>)`, 'gi');
                     htmlText = htmlText.replace(regex, `<span class="highlight-word">$1</span>`);
                 }
             }
