@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learn Chinese with AI - Lightweight Pro 2.5 🚀</title>
+    <title>Learn Chinese with AI - Lightweight Pro 🚀</title>
     <style>
         @font-face {
             font-family: 'Edukai';
@@ -83,22 +83,20 @@
         textarea:focus, input[type="text"]:focus { border-color: #667eea; background: var(--card-bg); }
         select { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-weight: bold; cursor: pointer; outline: none; }
 
-        /* Style cho phần Gạch chân từ vựng mục tiêu (Đã Nâng Cấp) */
+        /* Style cho phần Gạch chân từ vựng mục tiêu (Vàng Tươi) */
         .highlight-word {
             text-decoration: underline;
-            text-decoration-color: #ef4444;
+            text-decoration-color: #ffc107; /* Màu vàng tươi */
             text-underline-offset: 4px;
-            text-decoration-thickness: 2px;
+            text-decoration-thickness: 3px; /* Làm đường gạch dày hơn để dễ thấy */
             font-weight: bold;
-            color: #b91c1c;
-            background-color: #fef08a; /* Nền vàng nhạt làm nổi bật text */
-            padding: 0 4px;
-            border-radius: 4px;
+            color: inherit; /* Giữ màu chữ gốc để dễ đọc */
+            background-color: transparent; /* Xóa màu nền */
         }
         body.dark-mode .highlight-word {
-            color: #fbd38d;
-            text-decoration-color: #f6ad55;
-            background-color: #744210; /* Nền sậm trong dark mode */
+            text-decoration-color: #fde047; /* Vàng sáng hơn cho chế độ tối */
+            color: inherit;
+            background-color: transparent;
         }
 
         /* Layout Boxes */
