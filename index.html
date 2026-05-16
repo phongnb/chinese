@@ -83,19 +83,19 @@
         textarea:focus, input[type="text"]:focus { border-color: #667eea; background: var(--card-bg); }
         select { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-weight: bold; cursor: pointer; outline: none; }
 
-        /* Style cho phần Gạch chân từ vựng mục tiêu - ĐÃ ĐƯỢC CHỈNH SỬA VÀNG TƯƠI */
+        /* Style cho phần Gạch chân từ vựng mục tiêu - MÀU VÀNG TƯƠI */
         .highlight-word {
             text-decoration: underline;
-            text-decoration-color: #FFD700; /* Vàng tươi */
+            text-decoration-color: #ffcc00; /* Vàng tươi */
             text-underline-offset: 4px;
-            text-decoration-thickness: 3px; /* Tăng độ dày xíu cho dễ nhìn */
+            text-decoration-thickness: 3px;
             font-weight: bold;
-            color: var(--text-main); /* Chữ đồng màu với đoạn văn */
+            color: #d97706; /* Màu trầm hơn một chút ở chế độ sáng để đảm bảo độ tương phản/dễ đọc */
             background-color: transparent;
         }
         body.dark-mode .highlight-word {
-            color: var(--text-main);
-            text-decoration-color: #FFFF00; /* Vàng sáng rực ở dark mode */
+            color: #fef08a; /* Vàng sáng trong Dark mode */
+            text-decoration-color: #fef08a;
         }
 
         /* Layout Boxes */
@@ -113,9 +113,9 @@
         body.dark-mode .btn-green { background-color: #22543d !important; color: #9ae6b4 !important; border-color: #276749 !important; }
         body.dark-mode .btn-orange { background-color: #7b341e !important; color: #fbd38d !important; border-color: #9c4221 !important; }
 
-        /* Role-play Styles - TĂNG FONT TIẾNG TRUNG LÊN 30PX */
+        /* Role-play Styles */
         .roleplay-line { display: flex; align-items: flex-start; margin-bottom: 12px; padding: 12px; background: var(--input-bg); border-radius: 8px; border-left: 4px solid var(--accent-orange); }
-        .roleplay-text { flex: 1; font-size: 30px; line-height: 1.5; } /* Điều chỉnh từ 24px -> 30px */
+        .roleplay-text { flex: 1; line-height: 1.5; }
         .play-line-btn { background: none; border: none; cursor: pointer; font-size: 22px; margin-left: 10px; opacity: 0.6; transition: 0.2s; }
         .play-line-btn:hover { opacity: 1; transform: scale(1.1); }
 
@@ -394,11 +394,14 @@
             linesZh.forEach((lineZh, idx) => {
                 let originalZhText = lineZh.trim(); 
                 
-                // Gạch chân từ vựng mục tiêu
+                // Gạch chân từ vựng mục tiêu cho tiếng Trung
                 let textZh = window.applyVocabToHTML(originalZhText, true);
                 
                 let lineVi = linesVi[idx] || "";
                 let textVi = lineVi.trim();
+                
+                // Gạch chân từ vựng mục tiêu cho tiếng Việt
+                textVi = window.applyVocabToHTML(textVi, true);
 
                 let isPersonA = (idx % 2 === 0);
                 let displayText = "";
@@ -417,7 +420,8 @@
                     isVietnamese = false;
                 }
 
-                const textStyle = isVietnamese ? 'font-size: 16px; font-family: inherit;' : '';
+                // Tiếng Việt giữ nguyên 16px, Tiếng Trung nâng lên 30px
+                const textStyle = isVietnamese ? 'font-size: 16px; font-family: inherit;' : 'font-size: 30px;';
                 const fontClass = isVietnamese ? '' : 'font-edukai';
                 const playBtnHtml = isVietnamese ? '' : `<button class="play-line-btn" onclick="playRoleplayLine('${escapeQuotes(originalZhText)}')">🔊</button>`;
 
@@ -631,7 +635,6 @@
         window.saveToBoth = async function() {
             localStorage.setItem('chineseNotebookDB_Lite', JSON.stringify(window.topics));
             
-            // ĐÃ KHÔI PHỤC LẠI CHỨC NĂNG LƯU VÀO FIREBASE
             try { 
                 if(window.firebaseSet) { 
                     await window.firebaseSet(window.firebaseRef(window.firebaseDb, 'topics'), window.topics); 
