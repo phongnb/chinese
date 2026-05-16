@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learn Chinese with AI - Lightweight Pro 🚀</title>
+    <title>Learn Chinese with AI - Lightweight Pro 2.5 🚀</title>
     <style>
         @font-face {
             font-family: 'Edukai';
@@ -83,19 +83,22 @@
         textarea:focus, input[type="text"]:focus { border-color: #667eea; background: var(--card-bg); }
         select { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-weight: bold; cursor: pointer; outline: none; }
 
-        /* Style cho phần Gạch chân từ vựng mục tiêu */
+        /* Style cho phần Gạch chân từ vựng mục tiêu (Đã Nâng Cấp) */
         .highlight-word {
             text-decoration: underline;
-            text-decoration-color: #e53e3e;
+            text-decoration-color: #ef4444;
             text-underline-offset: 4px;
             text-decoration-thickness: 2px;
             font-weight: bold;
-            color: #e53e3e;
-            background-color: transparent;
+            color: #b91c1c;
+            background-color: #fef08a; /* Nền vàng nhạt làm nổi bật text */
+            padding: 0 4px;
+            border-radius: 4px;
         }
         body.dark-mode .highlight-word {
             color: #fbd38d;
-            text-decoration-color: #fbd38d;
+            text-decoration-color: #f6ad55;
+            background-color: #744210; /* Nền sậm trong dark mode */
         }
 
         /* Layout Boxes */
@@ -115,7 +118,7 @@
 
         /* Role-play Styles */
         .roleplay-line { display: flex; align-items: flex-start; margin-bottom: 12px; padding: 12px; background: var(--input-bg); border-radius: 8px; border-left: 4px solid var(--accent-orange); }
-        .roleplay-text { flex: 1; font-size: 30px; line-height: 1.5; }
+        .roleplay-text { flex: 1; font-size: 36px; line-height: 1.5; }
         .play-line-btn { background: none; border: none; cursor: pointer; font-size: 22px; margin-left: 10px; opacity: 0.6; transition: 0.2s; }
         .play-line-btn:hover { opacity: 1; transform: scale(1.1); }
 
@@ -393,12 +396,11 @@
 
             linesZh.forEach((lineZh, idx) => {
                 let originalZhText = lineZh.trim(); 
-                
-                // Gạch chân từ vựng mục tiêu
-                let textZh = window.applyVocabToHTML(originalZhText, true);
-                
                 let lineVi = linesVi[idx] || "";
-                let textVi = lineVi.trim();
+                
+                // Áp dụng gạch chân / Highlight cho CẢ câu Tiếng Trung lẫn Tiếng Việt
+                let textZh = window.applyVocabToHTML(originalZhText, true);
+                let textVi = window.applyVocabToHTML(lineVi.trim(), true);
 
                 let isPersonA = (idx % 2 === 0);
                 let displayText = "";
@@ -631,7 +633,6 @@
         window.saveToBoth = async function() {
             localStorage.setItem('chineseNotebookDB_Lite', JSON.stringify(window.topics));
             
-            // ĐÃ KHÔI PHỤC LẠI CHỨC NĂNG LƯU VÀO FIREBASE
             try { 
                 if(window.firebaseSet) { 
                     await window.firebaseSet(window.firebaseRef(window.firebaseDb, 'topics'), window.topics); 
@@ -640,27 +641,35 @@
             catch (e) { console.warn("Lỗi đồng bộ Firebase", e); }
         }
 
-        /* --- TỰ ĐỘNG GẠCH CHÂN TỪ VỰNG --- */
+        /* --- TỰ ĐỘNG GẠCH CHÂN VÀ HIGHLIGHT TỪ VỰNG --- */
         window.applyVocabToHTML = function(text, isRawText = false) {
             if (!text) return "";
             let htmlText = text;
             
+            // Xử lý escape HTML tags để tránh lỗi hiển thị
             if (isRawText) {
                 htmlText = htmlText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
             } else {
+                // Xóa thẻ span highlight cũ nếu không phải raw text
                 htmlText = htmlText.replace(/<span class="highlight-word">([^<]*)<\/span>/g, '$1');
             }
 
             const vocabInput = document.getElementById('targetVocab').value;
             if (vocabInput.trim() !== "") {
                 const words = vocabInput.split(',').map(w => w.trim()).filter(w => w !== "");
-                words.sort((a, b) => b.length - a.length);
+                
+                if (words.length > 0) {
+                    // Sắp xếp theo độ dài giảm dần để ưu tiên cụm từ dài trước
+                    words.sort((a, b) => b.length - a.length);
 
-                words.forEach(word => {
-                    const escapeWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    const regex = new RegExp(`(${escapeWord})(?![^<]*>)`, 'gi');
+                    // Escape các ký tự đặc biệt trong Regex
+                    const escapedWords = words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+                    
+                    // Gộp tất cả từ vào 1 Regex bằng toán tử OR (|) để quét và bọc thẻ trong 1 lần duy nhất
+                    // Giúp xử lý dứt điểm lỗi các thẻ span bị lồng vào nhau gây vỡ layout
+                    const regex = new RegExp(`(${escapedWords.join('|')})`, 'gi');
                     htmlText = htmlText.replace(regex, `<span class="highlight-word">$1</span>`);
-                });
+                }
             }
             return htmlText;
         }
