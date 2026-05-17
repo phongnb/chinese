@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learn Chinese - Lightweight Pro 6.1 🚀</title>
+    <title>Learn Chinese - Lightweight Pro 6.2 🚀</title>
     <style>
         @font-face {
             font-family: 'Edukai';
@@ -459,6 +459,10 @@
         const audio = document.getElementById('mainAudio');
         let pointA = null, pointB = null, isLooping = false;
         let shadowState = 0; 
+        
+        // Thêm 2 biến mới để quản lý thời gian chờ 3s
+        let loopTimeout = null; 
+        let isWaiting = false; 
 
         document.getElementById('audioFile').addEventListener('change', (e) => {
             const file = e.target.files[0]; if(file) audio.src = URL.createObjectURL(file);
@@ -483,6 +487,9 @@
                 audio.play();
             } else if (shadowState === 2) {
                 pointA = null; pointB = null; isLooping = false; shadowState = 0;
+                isWaiting = false;
+                if (loopTimeout) clearTimeout(loopTimeout); // Xóa đếm ngược nếu đang trong 3s chờ
+
                 btn.innerHTML = "🅰️ Đặt điểm [A]";
                 btn.style.background = "var(--card-bg)"; 
                 btn.style.color = "var(--text-main)"; 
@@ -495,9 +502,18 @@
         }
 
         audio.addEventListener('timeupdate', () => { 
-            if(isLooping && pointB !== null && audio.currentTime >= pointB) { 
-                audio.currentTime = pointA; 
-                audio.play(); 
+            if(isLooping && pointB !== null && audio.currentTime >= pointB && !isWaiting) { 
+                audio.pause(); // Tạm dừng audio
+                isWaiting = true; // Bật cờ đánh dấu đang chờ
+
+                // Đợi 3000ms (3 giây)
+                loopTimeout = setTimeout(() => {
+                    if (isLooping) { 
+                        audio.currentTime = pointA; 
+                        audio.play(); 
+                        isWaiting = false; 
+                    }
+                }, 3000);
             }
         });
 
