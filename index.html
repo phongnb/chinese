@@ -118,29 +118,37 @@
 
         /* Role-play Styles */
         .roleplay-line { display: flex; align-items: flex-start; margin-bottom: 12px; padding: 12px; background: var(--input-bg); border-radius: 8px; border-left: 4px solid var(--accent-orange); }
-        .roleplay-text { flex: 1; font-size: 36px; line-height: 1.5; transition: color 0.3s ease; }
+        .roleplay-text { flex: 1; font-size: 36px; line-height: 1.5; transition: color 0.3s ease, text-shadow 0.3s ease; }
         
-        /* Focus Mode Styles (Ẩn chữ không đánh dấu) */
+        /* Focus Mode Styles (LÀM NHÒE CHỮ KHÔNG ĐÁNH DẤU HOÀN TOÀN) */
         .focus-mode .roleplay-text,
         .focus-mode .roleplay-text > span {
-            color: rgba(150, 150, 150, 0.25) !important;
+            color: transparent !important; /* Làm tàng hình chữ gốc */
+            text-shadow: 0 0 12px rgba(0, 0, 0, 0.4) !important; /* Tạo vệt nhòe mờ */
+            user-select: none; /* Khóa bôi đen ăn gian */
         }
         body.dark-mode .focus-mode .roleplay-text,
         body.dark-mode .focus-mode .roleplay-text > span {
-            color: rgba(150, 150, 150, 0.15) !important;
+            color: transparent !important;
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.3) !important;
         }
 
-        /* Giữ nguyên màu cho các từ được bôi đậm/đánh dấu */
+        /* Bỏ làm nhòe và hiện rõ lại chữ đối với các từ được BÔI MÀU / ĐÁNH DẤU */
         .focus-mode .roleplay-text span[style*="background"],
         .focus-mode .roleplay-text font[style*="background"] {
             color: var(--text-main) !important;
+            text-shadow: none !important;
+            user-select: auto;
         }
 
         .focus-mode .roleplay-text .highlight-word {
             color: #b91c1c !important;
+            text-shadow: none !important;
+            user-select: auto;
         }
         body.dark-mode .focus-mode .roleplay-text .highlight-word {
             color: #fbd38d !important;
+            text-shadow: none !important;
         }
 
         /* Audio Player */
