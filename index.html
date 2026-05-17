@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learn Chinese - Lightweight 5.0 🚀</title>
+    <title>Learn Chinese - Lightweight 3.6 🚀</title>
     <style>
         @font-face {
             font-family: 'Edukai';
@@ -65,7 +65,7 @@
         .controls-right { display: flex; gap: 10px; align-items: center; }
         .dark-mode-btn { padding: 10px 12px; border-radius: 8px; border: none; background: var(--toolbar-bg); color: var(--text-main); cursor: pointer; font-size: 16px; transition: 0.3s; }
         .dark-mode-btn:hover { filter: brightness(0.9); }
-        .save-btn { background: linear-gradient(to right, #00b09b, #96c93d); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0, 176, 155, 0.3); }
+        .save-btn { background: linear-gradient(to right, #00b09b, #96c93d); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0, 176, 155, 0.3); transition: 0.3s;}
         .delete-btn { background: #ff4757; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
         /* Tabs */
@@ -183,7 +183,7 @@
         <div class="header-controls">
             <div class="topic-title-wrapper">
                 <button class="toggle-sidebar-btn" onclick="toggleSidebar()" title="Ẩn/Hiện Menu">☰</button>
-                <input type="text" class="topic-title-input" id="topicTitle" placeholder="Tên chủ đề..." onchange="autoSave()">
+                <input type="text" class="topic-title-input" id="topicTitle" placeholder="Tên chủ đề..." oninput="autoSave()">
             </div>
             
             <div class="controls-right">
@@ -253,7 +253,7 @@
                             <input type="range" min="14" max="40" value="20" oninput="changeFontSize('roleplayNotes', this.value)" style="width: 70px;">
                         </div>
                     </div>
-                    <div id="roleplayNotes" class="editor-content" contenteditable="true" style="flex: 1; min-height: 200px; border: 1px solid var(--border-color); border-radius: 0 0 8px 8px; background: var(--input-bg);" placeholder="Gõ đáp án đàm thoại hoặc ghi chú của bạn vào đây..." oninput="markUnsaved()"></div>
+                    <div id="roleplayNotes" class="editor-content" contenteditable="true" style="flex: 1; min-height: 200px; border: 1px solid var(--border-color); border-radius: 0 0 8px 8px; background: var(--input-bg);" placeholder="Gõ đáp án đàm thoại hoặc ghi chú của bạn vào đây..." oninput="autoSave()"></div>
                 </div>
             </div>
         </div>
@@ -521,7 +521,7 @@
                 document.execCommand('hiliteColor', false, value);
                 document.execCommand('backColor', false, value);
             }
-            window.markUnsaved(); 
+            window.autoSave(); 
         }
 
         window.highlightReadOnly = function(boxId, command, isCmd = false) {
@@ -542,7 +542,7 @@
                 }
             }
             box.contentEditable = "false"; 
-            window.markUnsaved();
+            window.autoSave();
             
             if(window.topics[window.currentIndex]) {
                 if(boxId === 'roleplayContainer') window.topics[window.currentIndex].roleplayHTML = box.innerHTML;
@@ -607,10 +607,25 @@
             openTab({currentTarget: document.querySelector('.tab-btn.active') || document.querySelector('.tab-btn')}, 'Setup');
         }
 
+        /* --- TỰ ĐỘNG LƯU (AUTO-SAVE & DEBOUNCE) --- */
         window.markUnsaved = function() {
-            const btn = document.getElementById('saveBtn'); btn.innerText = "⚠️ Cần Lưu"; btn.style.background = "#dd6b20";
+            const btn = document.getElementById('saveBtn'); 
+            btn.innerText = "⚠️ Cần Lưu"; 
+            btn.style.background = "#dd6b20";
         }
-        window.autoSave = function() { window.markUnsaved(); }
+
+        let autoSaveTimer;
+        window.autoSave = function() {
+            window.markUnsaved();
+            clearTimeout(autoSaveTimer);
+            // Thiết lập lưu dữ liệu tự động sau 1.5 giây ngừng gõ
+            autoSaveTimer = setTimeout(() => {
+                if (window.currentIndex !== -1) {
+                    window.saveTopic(); 
+                }
+            }, 1500); 
+        }
+
         window.saveTopic = function() { window.saveTopicData(window.currentIndex); }
 
         window.saveTopicData = async function(index) {
@@ -668,8 +683,8 @@
         }
 
         window.autoUpdateViews = function(fromSetup = false) {
-            window.markUnsaved();
             window.renderRoleplay(fromSetup);
+            window.autoSave(); // Gọi hàm tự động lưu
         }
 
         /* --- KÍCH HOẠT PHÍM TẮT BÀN PHÍM --- */
