@@ -83,7 +83,7 @@
         textarea:focus, input[type="text"]:focus { border-color: #667eea; background: var(--card-bg); }
         select { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-weight: bold; cursor: pointer; outline: none; }
 
-        /* Style cho phần Gạch chân từ vựng mục tiêu (Đã Nâng Cấp) */
+        /* Style cho phần Gạch chân từ vựng mục tiêu */
         .highlight-word {
             text-decoration: underline;
             text-decoration-color: #ef4444;
@@ -91,14 +91,14 @@
             text-decoration-thickness: 2px;
             font-weight: bold;
             color: #b91c1c;
-            background-color: #fef08a; /* Nền vàng nhạt làm nổi bật text */
+            background-color: #fef08a;
             padding: 0 4px;
             border-radius: 4px;
         }
         body.dark-mode .highlight-word {
             color: #fbd38d;
             text-decoration-color: #f6ad55;
-            background-color: #744210; /* Nền sậm trong dark mode */
+            background-color: #744210;
         }
 
         /* Layout Boxes */
@@ -118,9 +118,30 @@
 
         /* Role-play Styles */
         .roleplay-line { display: flex; align-items: flex-start; margin-bottom: 12px; padding: 12px; background: var(--input-bg); border-radius: 8px; border-left: 4px solid var(--accent-orange); }
-        .roleplay-text { flex: 1; font-size: 36px; line-height: 1.5; }
-        .play-line-btn { background: none; border: none; cursor: pointer; font-size: 22px; margin-left: 10px; opacity: 0.6; transition: 0.2s; }
-        .play-line-btn:hover { opacity: 1; transform: scale(1.1); }
+        .roleplay-text { flex: 1; font-size: 36px; line-height: 1.5; transition: color 0.3s ease; }
+        
+        /* Focus Mode Styles (Ẩn chữ không đánh dấu) */
+        .focus-mode .roleplay-text,
+        .focus-mode .roleplay-text > span {
+            color: rgba(150, 150, 150, 0.25) !important;
+        }
+        body.dark-mode .focus-mode .roleplay-text,
+        body.dark-mode .focus-mode .roleplay-text > span {
+            color: rgba(150, 150, 150, 0.15) !important;
+        }
+
+        /* Giữ nguyên màu cho các từ được bôi đậm/đánh dấu */
+        .focus-mode .roleplay-text span[style*="background"],
+        .focus-mode .roleplay-text font[style*="background"] {
+            color: var(--text-main) !important;
+        }
+
+        .focus-mode .roleplay-text .highlight-word {
+            color: #b91c1c !important;
+        }
+        body.dark-mode .focus-mode .roleplay-text .highlight-word {
+            color: #fbd38d !important;
+        }
 
         /* Audio Player */
         .audio-player-bar { position: fixed; bottom: 0; left: 280px; right: 0; background: var(--card-bg); padding: 15px 30px; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 15px; border-top: 3px solid var(--accent-orange); z-index: 100; transition: left 0.3s ease; }
@@ -194,14 +215,7 @@
                 
                 <div style="flex: 1.5; min-width: 300px; display: flex; flex-direction: column;">
                     <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; background: var(--toolbar-bg); padding: 10px; border-radius: 8px; align-items: center;">
-                        <select id="roleplayVoice" style="flex: 1;" title="Chọn giọng đọc"></select>
-                        <select id="roleplaySpeed" title="Tốc độ đọc">
-                            <option value="0.5">0.5x</option>
-                            <option value="0.75">0.75x</option>
-                            <option value="1" selected>1.0x</option>
-                            <option value="1.25">1.25x</option>
-                        </select>
-                        <select id="roleplayMode" onchange="renderRoleplay(true)" title="Chế độ hiển thị">
+                        <select id="roleplayMode" onchange="renderRoleplay(true)" title="Chế độ hiển thị" style="flex: 1;">
                             <option value="mode1">Chế độ 1: A (Việt) - B (Trung)</option>
                             <option value="mode2">Chế độ 2: A (Trung) - B (Việt)</option>
                             <option value="mode3">Chế độ 3: A (Việt) - B (Việt)</option>
@@ -213,6 +227,8 @@
                             <button onmousedown="event.preventDefault();" onclick="highlightReadOnly('roleplayContainer', '#9ae6b4')" class="btn-green" title="Bôi Xanh" style="padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; cursor:pointer;">🟢</button>
                             <button onmousedown="event.preventDefault();" onclick="highlightReadOnly('roleplayContainer', '#fbd38d')" class="btn-orange" title="Bôi Cam" style="padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; cursor:pointer;">🟠</button>
                             <button onmousedown="event.preventDefault();" onclick="highlightReadOnly('roleplayContainer', 'transparent')" title="Xóa màu" style="padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; cursor:pointer;">✖️</button>
+                            <!-- Nút Tắt/Mở Ẩn Chữ -->
+                            <button id="focusBtn" onmousedown="event.preventDefault();" onclick="toggleFocusMode()" title="Ẩn/Hiện chữ không đánh dấu" style="padding: 6px 10px; margin-left: 5px; border: 1px solid var(--border-color); border-radius: 6px; cursor:pointer; background: var(--card-bg);">👁️ Ẩn/Hiện</button>
                         </div>
                     </div>
                     <div id="roleplayContainer" style="flex: 1; max-height: 500px; overflow-y: auto; padding-right: 10px;"></div>
@@ -350,26 +366,29 @@
             const isDark = document.body.classList.contains('dark-mode');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
             document.getElementById('darkModeBtn').innerText = isDark ? '☀️' : '🌙';
+            
+            // Xử lý nút Focus trong Dark Mode
+            const btn = document.getElementById('focusBtn');
+            const container = document.getElementById('roleplayContainer');
+            if(container && container.classList.contains('focus-mode')) {
+                btn.style.background = isDark ? "#4a5568" : "#cbd5e1";
+            }
         }
 
-        /* --- TTS & ROLEPLAY LOGIC --- */
-        let voices = [];
-        function populateVoiceList() {
-            if(typeof speechSynthesis === 'undefined') return;
-            voices = speechSynthesis.getVoices().filter(v => v.lang.includes('zh') || v.lang.includes('cmn'));
-            const voiceSelect = document.getElementById('roleplayVoice');
-            voiceSelect.innerHTML = '<option value="">-- Chọn giọng đọc TTS --</option>';
-            voices.forEach((voice, i) => {
-                const option = document.createElement('option');
-                option.textContent = `${voice.name} (${voice.lang})`;
-                option.value = i;
-                if(voice.lang.includes('TW') || voice.lang.includes('tw')) option.selected = true;
-                voiceSelect.appendChild(option);
-            });
-        }
-        if (typeof speechSynthesis !== 'undefined') {
-            speechSynthesis.onvoiceschanged = populateVoiceList;
-            populateVoiceList();
+        // Logic Ẩn/Hiện Chữ (Focus Mode)
+        window.toggleFocusMode = function() {
+            const container = document.getElementById('roleplayContainer');
+            container.classList.toggle('focus-mode');
+            const btn = document.getElementById('focusBtn');
+            const isDark = document.body.classList.contains('dark-mode');
+            
+            if(container.classList.contains('focus-mode')) {
+                btn.style.background = isDark ? "#4a5568" : "#cbd5e1";
+                btn.style.borderColor = "var(--accent-orange)";
+            } else {
+                btn.style.background = "var(--card-bg)";
+                btn.style.borderColor = "var(--border-color)";
+            }
         }
 
         window.renderRoleplay = function(forceRegen = false) {
@@ -421,37 +440,16 @@
 
                 const textStyle = isVietnamese ? 'font-size: 16px; font-family: inherit;' : '';
                 const fontClass = isVietnamese ? '' : 'font-edukai';
-                const playBtnHtml = isVietnamese ? '' : `<button class="play-line-btn" onclick="playRoleplayLine('${escapeQuotes(originalZhText)}')">🔊</button>`;
 
                 const lineDiv = document.createElement('div');
                 lineDiv.className = 'roleplay-line';
                 lineDiv.innerHTML = `
                     <div class="roleplay-text ${fontClass}" style="${textStyle}">${displayText}</div>
-                    ${playBtnHtml}
                 `;
                 container.appendChild(lineDiv);
             });
 
             window.topics[window.currentIndex].roleplayHTML = container.innerHTML;
-        }
-
-        window.playRoleplayLine = function(text) {
-            if (!window.speechSynthesis) return alert("Trình duyệt không hỗ trợ đọc giọng nói TTS!");
-            speechSynthesis.cancel(); 
-            const utterance = new SpeechSynthesisUtterance(text);
-            
-            const voiceSelect = document.getElementById('roleplayVoice');
-            if(voices.length > 0 && voiceSelect.value !== "") {
-                utterance.voice = voices[voiceSelect.value];
-            }
-            utterance.rate = parseFloat(document.getElementById('roleplaySpeed').value);
-            utterance.lang = 'zh-TW';
-            
-            speechSynthesis.speak(utterance);
-        }
-
-        function escapeQuotes(str) {
-            return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         }
 
         /* --- AUDIO PLAYER --- */
@@ -646,11 +644,9 @@
             if (!text) return "";
             let htmlText = text;
             
-            // Xử lý escape HTML tags để tránh lỗi hiển thị
             if (isRawText) {
                 htmlText = htmlText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
             } else {
-                // Xóa thẻ span highlight cũ nếu không phải raw text
                 htmlText = htmlText.replace(/<span class="highlight-word">([^<]*)<\/span>/g, '$1');
             }
 
@@ -659,14 +655,8 @@
                 const words = vocabInput.split(',').map(w => w.trim()).filter(w => w !== "");
                 
                 if (words.length > 0) {
-                    // Sắp xếp theo độ dài giảm dần để ưu tiên cụm từ dài trước
                     words.sort((a, b) => b.length - a.length);
-
-                    // Escape các ký tự đặc biệt trong Regex
                     const escapedWords = words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-                    
-                    // Gộp tất cả từ vào 1 Regex bằng toán tử OR (|) để quét và bọc thẻ trong 1 lần duy nhất
-                    // Giúp xử lý dứt điểm lỗi các thẻ span bị lồng vào nhau gây vỡ layout
                     const regex = new RegExp(`(${escapedWords.join('|')})`, 'gi');
                     htmlText = htmlText.replace(regex, `<span class="highlight-word">$1</span>`);
                 }
